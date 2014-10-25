@@ -4,11 +4,11 @@ var utils = require("./utils");
 function getLimitAPI() {
     var functionName = "getLimitAPI"
     utils.printLog(functionName, 'launch function')
-
+    
     var options = {
         hostname: 'api.github.com',
         port: 443,
-        path: '/rate_limit',
+        path: '/rate_limit' + utils.credentialApiTesting,
         method: 'GET',
         headers: {
             'User-Agent': 'Karim-Elaktaa'
