@@ -15,7 +15,7 @@ function getNumberOfIssues(iterator, currentPage, nbIssues) {
   var options = {
     hostname: 'api.github.com',
     port: 443,
-    path: '/repos/angular/angular.js/issues?state=all&per_page=' + itemPerPage + '&page=' + currentPage + utils.credentialApiTesting,
+    path: '/repos/newsapps/beeswithmachineguns/issues?state=closed&per_page=' + itemPerPage + '&page=' + currentPage + utils.credentialApiTesting,
     method: 'GET',
     headers: {
       'User-Agent': 'Karim-Elaktaa'
