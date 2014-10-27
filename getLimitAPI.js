@@ -8,7 +8,7 @@ function getLimitAPI() {
     var options = {
         hostname: 'api.github.com',
         port: 443,
-        path: '/rate_limit' + utils.credentialApiTesting,
+        path: '/rate_limit' + "?" + utils.credentialApiTesting,
         method: 'GET',
         headers: {
             'User-Agent': 'Karim-Elaktaa'

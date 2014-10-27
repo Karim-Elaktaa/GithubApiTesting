@@ -2,20 +2,22 @@ var https = require('https');
 var future = require('future');
 var utils = require("./utils");
 
-function getNumberOfIssues(iterator, currentPage, nbIssues) {
+function getNumberOfIssues(projectName, iterator, currentPage, totalNbIssuesOpen, totalNbIssuesClosed) {
+  projectName = typeof projectName !== 'undefined' ? projectName : "angular/angular.js";
   iterator = typeof iterator !== 'undefined' ? iterator : 0;
   currentPage = typeof currentPage !== 'undefined' ? currentPage : 1;
-  nbIssues = typeof nbIssues !== 'undefined' ? nbIssues : 0;
+  totalNbIssuesOpen = typeof totalNbIssuesOpen !== 'undefined' ? totalNbIssuesOpen : 0;
+  totalNbIssuesClosed = typeof totalNbIssuesClosed !== 'undefined' ? totalNbIssuesClosed : 0;
 
   var functionName = "getNumberOfIssues"
-  utils.printLog(functionName, 'launch function nbIssues = '+nbIssues);
+  utils.printLog(functionName, 'launch function \n totalNbIssuesOpen = ' + totalNbIssuesOpen + '\n totalNbIssuesClosed = ' + totalNbIssuesClosed);
 
 
   var itemPerPage = 100;
   var options = {
     hostname: 'api.github.com',
     port: 443,
-    path: '/repos/newsapps/beeswithmachineguns/issues?state=closed&per_page=' + itemPerPage + '&page=' + currentPage + utils.credentialApiTesting,
+    path: '/repos/' + projectName + '/issues?state=all&per_page=' + itemPerPage + '&page=' + currentPage + "&" + utils.credentialApiTesting,
     method: 'GET',
     headers: {
       'User-Agent': 'Karim-Elaktaa'
@@ -27,7 +29,9 @@ function getNumberOfIssues(iterator, currentPage, nbIssues) {
 
     var buffer = "",
       data;
-    var numberOfItem;
+    var numberOfIssuesOpen = 0,
+      numberOfIssuesClosed = 0,
+      numberOfIssuesIncludingPR = 0;
 
     res.on('data', function(d) {
       // process.stdout.write(d);
@@ -36,16 +40,34 @@ function getNumberOfIssues(iterator, currentPage, nbIssues) {
 
     res.on("end", function(err) {
       data = JSON.parse(buffer);
-      numberOfItem = data.length;
-      nbIssues = nbIssues + numberOfItem;
+      numberOfIssuesIncludingPR = data.length;
+      for (var i = 0; i < data.length; i++) {
+        try {
+          data[i].pull_request.url;
+          // utils.printLog(functionName, 'PULL REQUEST ' + data[i].pull_request.url);
+        }
+        catch (err) {
+          if (data[i].state == "open") {
+            numberOfIssuesOpen++;
+          }
+          else {
+            numberOfIssuesClosed++;
+          }
+          // utils.printLog(functionName, 'NOT PULL REQUEST');
+        }
+      }
+
+      // numberOfItem = data.length;
+      totalNbIssuesOpen += numberOfIssuesOpen;
+      totalNbIssuesClosed += numberOfIssuesClosed;
 
       currentPage++;
       iterator++;
-      if (numberOfItem == itemPerPage) {
-        getNumberOfIssues(iterator, currentPage, nbIssues);
+      if (numberOfIssuesIncludingPR == itemPerPage) {
+        getNumberOfIssues(projectName, iterator, currentPage, totalNbIssuesOpen, totalNbIssuesClosed);
       }
       else {
-        utils.printLog(functionName, 'Total issues ' + nbIssues);
+        utils.printLog(functionName, '\n Total issues open ' + totalNbIssuesOpen + '\n Total issues closed ' + totalNbIssuesClosed + '\n Ratio Open/Closed ' + totalNbIssuesOpen / totalNbIssuesClosed);
       }
     });
 
@@ -61,4 +83,4 @@ function getNumberOfIssues(iterator, currentPage, nbIssues) {
 
 }
 
-getNumberOfIssues();
+getNumberOfIssues('angular/angular.js');
